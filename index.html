@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rapor Digital SMK</title>
+<style>
+  body {
+    font-family: "Arial", sans-serif;
+    margin: 30px;
+    color: #222;
+  }
+  h1, h2, h3 {
+    text-align: center;
+  }
+  .form-box {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  input {
+    padding: 8px;
+    font-size: 16px;
+    width: 220px;
+  }
+  button {
+    padding: 8px 16px;
+    font-size: 16px;
+    margin-left: 5px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  button:hover { background: #0056b3; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  th, td {
+    border: 1px solid #555;
+    padding: 8px;
+    text-align: center;
+  }
+  th {
+    background: #f0f0f0;
+  }
+  #rapor {
+    display: none;
+  }
+  @media print {
+    .form-box, button#printBtn { display: none; }
+    #rapor { display: block; }
+  }
+</style>
+</head>
+<body>
+
+<h1>RAPOR DIGITAL SMK</h1>
+<h3>Kelas X Pemasaran</h3>
+
+<div class="form-box">
+  <input type="text" id="nisInput" placeholder="Masukkan NIS">
+  <button onclick="cariData()">Cari Rapor</button>
+</div>
+
+<div id="rapor">
+  <h2 id="namaSiswa"></h2>
+  <p><strong>NIS:</strong> <span id="nisSiswa"></span></p>
+  <p><strong>Kelas:</strong> <span id="kelasSiswa"></span></p>
+
+  <table id="tabelNilai">
+    <thead>
+      <tr>
+        <th>Mata Pelajaran</th>
+        <th>Nilai STS</th>
+        <th>Non STS</th>
+        <th>Nilai SAS</th>
+        <th>Non SAS</th>
+        <th>Capaian Kompetensi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <br>
+  <div style="text-align:center;">
+    <button id="printBtn" onclick="window.print()">🖨️ Cetak Rapor</button>
+  </div>
+</div>
+
+<script>
+const SHEET_URL = "https://opensheet.elk.sh/PASTE_ID_SHEET_KAMU/Nilai";
+
+async function cariData() {
+  const nis = document.getElementById("nisInput").value.trim();
+  if (!nis) {
+    alert("Masukkan NIS terlebih dahulu!");
+    return;
+  }
+
+  const res = await fetch(SHEET_URL);
+  const data = await res.json();
+
+  const siswa = data.filter(d => d.NIS === nis);
+
+  if (siswa.length === 0) {
+    alert("Data tidak ditemukan!");
+    return;
+  }
+
+  document.getElementById("rapor").style.display = "block";
+  document.getElementById("namaSiswa").textContent = siswa[0]["Nama Siswa"];
+  document.getElementById("nisSiswa").textContent = siswa[0]["NIS"];
+  document.getElementById("kelasSiswa").textContent = siswa[0]["Kelas"];
+
+  const tbody = document.querySelector("#tabelNilai tbody");
+  tbody.innerHTML = "";
+
+  siswa.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.Mapel}</td>
+      <td>${row["Nilai STS"]}</td>
+      <td>${row["Nilai Non STS"]}</td>
+      <td>${row["Nilai SAS"]}</td>
+      <td>${row["Nilai Non SAS"]}</td>
+      <td>${row["Capaian Kompetensi"]}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+</script>
+</body>
+</html>
